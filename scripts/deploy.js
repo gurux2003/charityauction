@@ -1,16 +1,12 @@
-const hre = require("hardhat");
+const { ethers } = require("hardhat");
 
 async function main() {
-  // Get the contract factory for CharityAuction
-  const CharityAuction = await hre.ethers.getContractFactory("CharityAuction");
-  
-  // Deploy the contract
+  const CharityAuction = await ethers.getContractFactory("CharityAuction");
   const charityAuction = await CharityAuction.deploy();
-  
-  // Wait for deployment to finish
-  await charityAuction.deployed();
-  
-  console.log("CharityAuction deployed to:", charityAuction.address);
+
+  await charityAuction.waitForDeployment();  // <== use this instead of deployed()
+
+  console.log("CharityAuction deployed to:", charityAuction.target); // <== address is in .target
 }
 
 main()
