@@ -14,8 +14,6 @@ CharityAuction is a decentralized smart contract platform that allows users to c
 - [Usage Example](#usage-example)
 - [Deployment](#deployment)
 - [Security Considerations](#security-considerations)
-- [License](#license)
-- [Contact](#contact)
 
 ---
 
