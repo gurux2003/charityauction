@@ -1,13 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-interface IERC721 {
-    function transferFrom(address from, address to, uint256 tokenId) external;
-    function ownerOf(uint256 tokenId) external view returns (address);
-    function approve(address to, uint256 tokenId) external;
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol"; // <-- required for CharityAuction
+
+/// @notice NFT contract using OpenZeppelin ERC721
+contract MyTestNFT is ERC721 {
+    uint256 public nextTokenId;
+
+    constructor() ERC721("MyTestNFT", "MTNFT") {}
+
+    /// @notice Mint a new NFT to the sender
+    function mint() external {
+        _safeMint(msg.sender, nextTokenId);
+        nextTokenId++;
+    }
 }
 
-contract CharityNFTAuction {
+/// @notice NFT Auction contract accepting any ERC721 token
+contract CharityAuction {
     struct Auction {
         address seller;
         address nftAddress;
@@ -31,7 +42,6 @@ contract CharityNFTAuction {
     event AuctionCancelled(uint256 indexed auctionId);
     event CharityUpdated(uint256 indexed auctionId, address newCharity);
 
-    /// @notice Create a new auction
     function createAuction(
         address _nftAddress,
         uint256 _tokenId,
@@ -64,7 +74,6 @@ contract CharityNFTAuction {
         emit AuctionCreated(auctionCount, _nftAddress, _tokenId, msg.sender, _startPrice, block.timestamp + _duration, _charity);
     }
 
-    /// @notice Place a bid
     function placeBid(uint256 _auctionId) external payable {
         Auction storage auction = auctions[_auctionId];
         require(block.timestamp < auction.endTime, "Auction ended");
@@ -81,14 +90,12 @@ contract CharityNFTAuction {
         emit BidPlaced(_auctionId, msg.sender, msg.value);
     }
 
-    /// @notice End an auction
     function endAuction(uint256 _auctionId) external {
         Auction storage auction = auctions[_auctionId];
         require(block.timestamp >= auction.endTime, "Auction not over");
         require(!auction.ended, "Auction already ended");
 
         auction.ended = true;
-
         _removeFromActiveAuctions(_auctionId);
 
         if (auction.highestBid > 0) {
@@ -100,7 +107,6 @@ contract CharityNFTAuction {
         }
     }
 
-    /// @notice Cancel an auction (only if no bids)
     function cancelAuction(uint256 _auctionId) external {
         Auction storage auction = auctions[_auctionId];
         require(msg.sender == auction.seller, "Not the seller");
@@ -109,12 +115,10 @@ contract CharityNFTAuction {
 
         auction.ended = true;
         _removeFromActiveAuctions(_auctionId);
-
         IERC721(auction.nftAddress).transferFrom(address(this), auction.seller, auction.tokenId);
         emit AuctionCancelled(_auctionId);
     }
 
-    /// @notice Update the charity address (before auction ends)
     function updateCharityAddress(uint256 _auctionId, address _newCharity) external {
         Auction storage auction = auctions[_auctionId];
         require(msg.sender == auction.seller, "Only seller can update");
@@ -125,7 +129,6 @@ contract CharityNFTAuction {
         emit CharityUpdated(_auctionId, _newCharity);
     }
 
-    /// @notice Withdraw previous bid if outbid
     function withdrawBid(uint256 _auctionId) external {
         uint256 amount = bids[_auctionId][msg.sender];
         require(amount > 0, "No withdrawable bid");
@@ -134,18 +137,19 @@ contract CharityNFTAuction {
         payable(msg.sender).transfer(amount);
     }
 
-    /// @notice Get current bid details
     function getCurrentBidDetails(uint256 _auctionId) external view returns (address bidder, uint256 amount) {
         Auction memory auction = auctions[_auctionId];
         return (auction.highestBidder, auction.highestBid);
     }
 
-    /// @notice Get active auctions
     function getActiveAuctions() external view returns (uint256[] memory) {
         return activeAuctions;
     }
 
-    /// @notice Remove from active list
+    function getAuction(uint256 _auctionId) external view returns (Auction memory) {
+        return auctions[_auctionId];
+    }
+
     function _removeFromActiveAuctions(uint256 _auctionId) internal {
         for (uint256 i = 0; i < activeAuctions.length; i++) {
             if (activeAuctions[i] == _auctionId) {
@@ -154,10 +158,5 @@ contract CharityNFTAuction {
                 break;
             }
         }
-    }
-
-    /// @notice View single auction
-    function getAuction(uint256 _auctionId) external view returns (Auction memory) {
-        return auctions[_auctionId];
     }
 }
