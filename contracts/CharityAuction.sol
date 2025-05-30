@@ -26,6 +26,7 @@ contract CharityAuction {
         uint256 startPrice;
         uint256 highestBid;
         address highestBidder;
+        uint256 startTime;    // Added startTime
         uint256 endTime;
         bool ended;
         address charity;
@@ -36,7 +37,16 @@ contract CharityAuction {
     mapping(uint256 => mapping(address => uint256)) public bids;
     uint256[] public activeAuctions;
 
-    event AuctionCreated(uint256 indexed auctionId, address indexed nftAddress, uint256 indexed tokenId, address seller, uint256 startPrice, uint256 endTime, address charity);
+    event AuctionCreated(
+        uint256 indexed auctionId,
+        address indexed nftAddress,
+        uint256 indexed tokenId,
+        address seller,
+        uint256 startPrice,
+        uint256 startTime,
+        uint256 endTime,
+        address charity
+    );
     event BidPlaced(uint256 indexed auctionId, address indexed bidder, uint256 amount);
     event AuctionEnded(uint256 indexed auctionId, address winner, uint256 amount, address charity);
     event AuctionCancelled(uint256 indexed auctionId);
@@ -58,6 +68,7 @@ contract CharityAuction {
         nft.transferFrom(msg.sender, address(this), _tokenId);
 
         auctionCount++;
+        uint256 currentTime = block.timestamp;
         auctions[auctionCount] = Auction({
             seller: msg.sender,
             nftAddress: _nftAddress,
@@ -65,13 +76,14 @@ contract CharityAuction {
             startPrice: _startPrice,
             highestBid: 0,
             highestBidder: address(0),
-            endTime: block.timestamp + _duration,
+            startTime: currentTime,
+            endTime: currentTime + _duration,
             ended: false,
             charity: _charity
         });
 
         activeAuctions.push(auctionCount);
-        emit AuctionCreated(auctionCount, _nftAddress, _tokenId, msg.sender, _startPrice, block.timestamp + _duration, _charity);
+        emit AuctionCreated(auctionCount, _nftAddress, _tokenId, msg.sender, _startPrice, currentTime, currentTime + _duration, _charity);
     }
 
     function placeBid(uint256 _auctionId) external payable {
