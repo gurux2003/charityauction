@@ -90,7 +90,6 @@ function App() {
       const charityAddr = formData.charityAddress;
       if (!ethers.isAddress(charityAddr)) return alert("Invalid charity address");
 
-      // Note: Passing nftAddress as first arg (required)
       const tx = await auctionContract.createAuction(
         NFT_ADDRESS,
         tokenId,
@@ -167,7 +166,7 @@ function App() {
           charity: auction.charity,
           highestBid: ethers.formatEther(auction.highestBid),
           highestBidder: auction.highestBidder,
-          duration: auction.endTime.sub(auction.startTime).toString(), // or however you calculate duration
+          duration: auction.endTime.sub(auction.startTime).toString(), 
           ended: auction.ended,
         });
       }
