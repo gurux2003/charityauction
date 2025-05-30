@@ -7,33 +7,33 @@ async function main() {
   console.log("Bidder:", bidder.address);
   console.log("Charity:", charity.address);
 
-  // 1. Deploy MyTestNFT
+  //Deploy MyTestNF
   const NFT = await ethers.getContractFactory("MyTestNFT");
   const nft = await NFT.deploy();
   await nft.waitForDeployment();
   const nftAddress = await nft.getAddress();
   console.log("✅ NFT Contract deployed at:", nftAddress);
 
-  // 2. Mint an NFT to the deployer
+  //Mint an NFT to the deployer
   const txMint = await nft.mint();
   await txMint.wait();
   console.log("✅ Minted NFT to:", deployer.address);
 
   const tokenId = 0;
 
-  // 3. Deploy CharityAuction
+  //Deploy CharityAuction
   const Auction = await ethers.getContractFactory("CharityAuction");
   const auction = await Auction.deploy();
   await auction.waitForDeployment();
   const auctionAddress = await auction.getAddress();
   console.log("✅ Auction Contract deployed at:", auctionAddress);
 
-  // 4. Approve the auction contract to transfer the NFT
+  //Approve the auction contract to transfer the NFT
   const txApprove = await nft.approve(auctionAddress, tokenId);
   await txApprove.wait();
   console.log("✅ Approved Auction contract to transfer NFT");
 
-  // 5. Create an auction
+  //Create an auction
   const startPrice = ethers.parseEther("0.01");
   const duration = 60 * 5; // 5 minutes
 
@@ -47,7 +47,7 @@ async function main() {
   await txCreateAuction.wait();
   console.log("✅ Auction created");
 
-  // 6. Place a bid from the bidder account
+  //Place a bid from the bidder account
   const auctionId = 1;
   const bidAmount = ethers.parseEther("0.02");
   const auctionAsBidder = auction.connect(bidder);
@@ -55,7 +55,7 @@ async function main() {
   await txBid.wait();
   console.log("✅ Bid placed by:", bidder.address);
 
-  // 7. Summary
+  //Summary
   console.log("🎯 NFT Contract Address:", nftAddress);
   console.log("🎯 Auction Contract Address:", auctionAddress);
 }
