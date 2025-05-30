@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ethers } from "ethers";
+import { ethers, isAddress } from "ethers";  // <-- import isAddress directly
 import NFT_ABI from "./MyTestNFT.json";
 import AUCTION_ABI from "./CharityAuction.json";
 
@@ -88,8 +88,9 @@ function App() {
       if (isNaN(duration)) return alert("Invalid duration");
 
       const charityAddr = formData.charityAddress;
-      if (!ethers.isAddress(charityAddr)) return alert("Invalid charity address");
+      if (!isAddress(charityAddr)) return alert("Invalid charity address");  // <-- fixed here
 
+      // Create auction on contract
       const tx = await auctionContract.createAuction(
         NFT_ADDRESS,
         tokenId,
@@ -111,7 +112,7 @@ function App() {
       if (isNaN(auctionId)) return alert("Invalid auction ID");
       const bidAmount = ethers.parseEther(formData.bidAmount || "0");
 
-      const tx = await auctionContract.bid(auctionId, { value: bidAmount });
+      const tx = await auctionContract.placeBid(auctionId, { value: bidAmount });
       await tx.wait();
       alert("Bid placed!");
     } catch (error) {
@@ -147,33 +148,40 @@ function App() {
     }
   }
 
-  async function loadActiveAuctions() {
+ async function loadActiveAuctions() {
   if (!auctionContract) return alert("Connect wallet first!");
 
   try {
     const activeIds = await auctionContract.getActiveAuctions();
     const active = [];
+    const now = Math.floor(Date.now() / 1000);
 
     for (let i = 0; i < activeIds.length; i++) {
-      const auctionId = activeIds[i];
-      const auction = await auctionContract.auctions(auctionId);
+      // activeIds[i] may be a number or string already
+      const auctionIdNum = Number(activeIds[i]);
+
+      const auction = await auctionContract.auctions(auctionIdNum);
 
       if (!auction.ended) {
+        // endTime might be BigNumber or number
+        const endTimeNum = Number(auction.endTime);
+        const timeLeft = endTimeNum > now ? endTimeNum - now : 0;
+
         active.push({
-          auctionId: auctionId.toString(),
-          tokenId: auction.tokenId.toString(),
+          auctionId: auctionIdNum.toString(),
+          tokenId: auction.tokenId.toString(), // tokenId might be BigNumber still, keep .toString()
           startPrice: ethers.formatEther(auction.startPrice),
           charity: auction.charity,
           highestBid: ethers.formatEther(auction.highestBid),
           highestBidder: auction.highestBidder,
-          duration: auction.endTime.sub(auction.startTime).toString(), 
+          duration: timeLeft.toString(),
           ended: auction.ended,
         });
       }
     }
     setAuctions(active);
   } catch (error) {
-    alert("Load auctions failed: " + error.message);
+    alert("Load auctions failed: " + (error?.message || error));
   }
 }
 
