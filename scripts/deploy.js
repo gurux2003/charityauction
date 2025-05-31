@@ -1,4 +1,3 @@
-// Import Hardhat runtime environment explicitly
 const hre = require("hardhat");
 
 async function main() {
@@ -8,19 +7,18 @@ async function main() {
   console.log("Deploying MyTestNFT...");
   const MyTestNFT = await hre.ethers.getContractFactory("MyTestNFT");
   const myTestNFT = await MyTestNFT.deploy();
-  await myTestNFT.waitForDeployment();
-  console.log("MyTestNFT deployed at:", myTestNFT.target);
+  await myTestNFT.deployed();
+  console.log("MyTestNFT deployed to:", myTestNFT.address);
 
   console.log("Deploying CharityAuction...");
   const CharityAuction = await hre.ethers.getContractFactory("CharityAuction");
   const charityAuction = await CharityAuction.deploy();
-  await charityAuction.waitForDeployment();
-  console.log("CharityAuction deployed at:", charityAuction.target);
+  await charityAuction.deployed();
+  console.log("CharityAuction deployed to:", charityAuction.address);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error("Error in deployment:", error);
-    process.exit(1);
-  });
+main().catch((error) => {
+  console.error("Error in deployment:", error);
+  process.exitCode = 1;
+});
+
