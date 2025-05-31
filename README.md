@@ -76,7 +76,10 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 ![Result](images/result.png)
 
 ### 📽️ Demo Video
-[![Watch Video](https://img.youtube.com/vi/YOUR_VIDEO_ID_HERE/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID_HERE)
+
+https://github.com/user-attachments/assets/f563e2ed-7d6e-4151-92d8-3a38d4f5b996
+
+
 
 ---
 
