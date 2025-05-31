@@ -82,10 +82,9 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 
 ## 🔐 Contract Addresses
 
-| Contract | Address |
-|---------|---------|
-| **MyTestNFT** | `0xYourNFTContractAddressHere` |
-| **CharityAuction** | `0xYourAuctionContractAddressHere` |
+0xa0a9579D2F7b201cF2C09C09bE8B6D230b198c13
+![image](https://github.com/user-attachments/assets/c886d6c0-3ada-4567-b85c-b2df81ded182)
+
 
 
 
