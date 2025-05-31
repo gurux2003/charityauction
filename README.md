@@ -1,4 +1,4 @@
-# 🧧 NFT-Based Charity Auction DApp
+#  NFT-Based Charity Auction DApp
 
 A decentralized application for hosting **NFT auctions where all proceeds go directly to charity**. Built using Solidity, OpenZeppelin, and web3 tools. Transparent. Trustless. Impactful.
 
@@ -35,11 +35,11 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 ---
 
 ## 🚀 Future Scope
-- 🌐 Cross-chain auctions (Polygon, Base)
-- 🏛️ Verified charity registry
-- 📈 Auction analytics dashboard
-- 🖼️ NFT metadata IPFS/Arweave integration
-- 🤝 Social sharing & referral rewards
+-  Cross-chain auctions (Polygon, Base)
+-  Verified charity registry
+-  Auction analytics dashboard
+-  NFT metadata IPFS/Arweave integration
+-  Social sharing & referral rewards
 
 ---
 
@@ -47,12 +47,12 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 
 | Feature | Description |
 |--------|-------------|
-| 🖼️ NFT Minting | Mint your own NFTs using OpenZeppelin's ERC721 standard |
-| 📢 Create Auction | List your NFT for auction and specify the charity |
-| 💰 Real-Time Bidding | Place bids, outbid others, and see live auction status |
-| 🏁 Auction Settlement | Winner gets the NFT; charity gets the ETH — auto handled |
-| 🔄 Withdraw Bids | Outbid participants can safely withdraw their ETH |
-| 🧾 Fully On-Chain | Transparent and immutable auction history |
+|  NFT Minting | Mint your own NFTs using OpenZeppelin's ERC721 standard |
+|  Create Auction | List your NFT for auction and specify the charity |
+|  Real-Time Bidding | Place bids, outbid others, and see live auction status |
+|  Auction Settlement | Winner gets the NFT; charity gets the ETH — auto handled |
+|  Withdraw Bids | Outbid participants can safely withdraw their ETH |
+|  Fully On-Chain | Transparent and immutable auction history |
 
 ---
 
@@ -61,19 +61,16 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 > Replace below with your own images and videos hosted on GitHub, IPFS, or third-party platforms (e.g., YouTube, Imgur, Cloudflare).
 
 ### 🔹 NFT Minting Page
-![Mint Page](images/mint.png)
+![image](https://github.com/user-attachments/assets/5e94aefa-ff7e-4ac7-b101-1e662ed4993a)
 
 ### 🔹 Create Auction
-![Create Auction](images/create-auction.png)
+![image](https://github.com/user-attachments/assets/2cbfaf65-c0f3-47a5-b976-f448a4225d3c)
 
 ### 🔹 Browse Live Auctions
-![Live Auctions](images/live-auctions.png)
+![image](https://github.com/user-attachments/assets/d8aa6b20-29ca-4717-b3d2-3bd719cc220d)
 
 ### 🔹 Place a Bid
-![Bidding Page](images/bid.png)
-
-### 🔹 Auction Result / Winner Modal
-![Result](images/result.png)
+![image](https://github.com/user-attachments/assets/ffbd52e1-07a8-432c-ad20-b404b58058f6)
 
 ### 📽️ Demo Video
 
