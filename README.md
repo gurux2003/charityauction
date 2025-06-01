@@ -58,19 +58,23 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 
 ## 🖼️ Frontend Showcase
 
-> Replace below with your own images and videos hosted on GitHub, IPFS, or third-party platforms (e.g., YouTube, Imgur, Cloudflare).
+
 
 ### 🔹 NFT Minting Page
 ![image](https://github.com/user-attachments/assets/5e94aefa-ff7e-4ac7-b101-1e662ed4993a)
+### Users can mint NFTs by interacting with the sleek "Mint NFT" button.
 
-### 🔹 Create Auction
+## 🔹 Create Auction
 ![image](https://github.com/user-attachments/assets/2cbfaf65-c0f3-47a5-b976-f448a4225d3c)
+### Enter NFT ID, start price, duration, and charity address to launch an auction on-chain.
 
 ### 🔹 Browse Live Auctions
 ![image](https://github.com/user-attachments/assets/d8aa6b20-29ca-4717-b3d2-3bd719cc220d)
+### View all active NFT auctions and place your bids in real time
 
 ### 🔹 Place a Bid
 ![image](https://github.com/user-attachments/assets/ffbd52e1-07a8-432c-ad20-b404b58058f6)
+### Place a bid by entering the Auction ID and amount in ETH. End the auction to transfer the NFT and send funds to charity
 
 ### 📽️ Demo Video
 
