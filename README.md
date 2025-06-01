@@ -81,6 +81,7 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 https://github.com/user-attachments/assets/f563e2ed-7d6e-4151-92d8-3a38d4f5b996
 
 https://github.com/user-attachments/assets/25564ee8-954f-4567-a4fe-cf91de9e3702
+### If no bid is taken, the auction is able to end before time
 
 ---
 
