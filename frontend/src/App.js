@@ -5,8 +5,8 @@ import AUCTION_ABI from "./CharityAuction.json";
 import './App.css';
 import './index.css';
 
-const NFT_ADDRESS = "0xC0aDa621a5a5eEdE0aCC4E25a97e7Ef98a5134c8"; 
-const AUCTION_ADDRESS = "0x68d8C83874362eB3F4a03405fCd0538F787425cA";
+const NFT_ADDRESS = "0x0cf9f56706689404e44d7F2CCfDa361129DabeFD";
+const AUCTION_ADDRESS = "0x0e6217dB05167C9279b21ab1C2eE04A6eC24856B";
 
 function App() {
   const [provider, setProvider] = useState(null);
@@ -16,6 +16,7 @@ function App() {
   const [auctionContract, setAuctionContract] = useState(null);
   const [minting, setMinting] = useState(false);
   const [auctions, setAuctions] = useState([]);
+  const [reputation, setReputation] = useState({ participated: 0, won: 0 });
   const [formData, setFormData] = useState({
     approveTokenId: "",
     auctionTokenId: "",
@@ -50,6 +51,7 @@ function App() {
 
     setNftContract(nft);
     setAuctionContract(auction);
+    updateReputation(auction, addr);
   }
 
   async function mintNFT() {
@@ -84,13 +86,13 @@ function App() {
     try {
       const tokenId = Number(formData.auctionTokenId);
       const startPrice = ethers.parseEther(formData.startPrice || "0");
-
       const duration = Number(formData.duration);
       const charityAddr = formData.charityAddress;
 
       if (isNaN(tokenId)) return alert("Invalid NFT Token ID");
       if (isNaN(duration)) return alert("Invalid duration");
       if (!isAddress(charityAddr)) return alert("Invalid charity address");
+
       const tx = await auctionContract.createAuction(
         NFT_ADDRESS,
         tokenId,
@@ -111,27 +113,34 @@ function App() {
       const auctionId = Number(formData.bidAuctionId);
       const bidAmount = ethers.parseEther(formData.bidAmount || "0");
       if (isNaN(auctionId)) return alert("Invalid auction ID");
+
       const tx = await auctionContract.placeBid(auctionId, { value: bidAmount });
       await tx.wait();
       alert("Bid placed!");
+      updateReputation(auctionContract, userAddress);
     } catch (error) {
       alert("Bid failed: " + (error?.message || error));
     }
   }
+async function endAuction() {
+  if (!auctionContract) return alert("Connect wallet first!");
+  try {
+    const auctionId = Number(formData.endAuctionId);
+    if (isNaN(auctionId)) return alert("Invalid auction ID");
 
-  async function endAuction() {
-    if (!auctionContract) return alert("Connect wallet first!");
-    try {
-      const auctionId = Number(formData.endAuctionId);
-      if (isNaN(auctionId)) return alert("Invalid auction ID");
+    const tx = await auctionContract.endAuction(auctionId);
+    await tx.wait();
+    alert("Auction ended!");
 
-      const tx = await auctionContract.endAuction(auctionId);
-      await tx.wait();
-      alert("Auction ended!");
-    } catch (error) {
-      alert("End auction failed: " + (error?.message || error));
-    }
+    // Force fresh data from blockchain (after short delay)
+    setTimeout(async () => {
+      await updateReputation(auctionContract, userAddress);
+    }, 3000); // Wait 3 seconds to ensure chain state updated
+  } catch (error) {
+    alert("End auction failed: " + (error?.message || error));
+    console.error(error);
   }
+}
 
   async function withdrawBid() {
     if (!auctionContract) return alert("Connect wallet first!");
@@ -174,7 +183,6 @@ function App() {
           });
         }
       }
-
       setAuctions(active);
     } catch (error) {
       alert("Load auctions failed: " + (error?.message || error));
@@ -185,24 +193,53 @@ function App() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
-  async function debugOwnerOf(tokenId) {
-    if (!nftContract) {
-      alert("Please connect wallet first!");
-      return;
-    }
-    if (typeof tokenId !== "number" || tokenId < 0) {
-      alert("Invalid tokenId for debug");
-      return;
-    }
-    try {
-      const owner = await nftContract.ownerOf(tokenId);
-      alert(`Owner of token ID ${tokenId} is ${owner}`);
-      console.log(`Owner of token ID ${tokenId}:`, owner);
-    } catch (error) {
-      alert(`Error calling ownerOf(${tokenId}): ${error.message || error}`);
-      console.error("ownerOf error:", error);
-    }
+const updateReputation = async (contract, addr) => {
+  if (!contract || !addr) return;
+
+  try {
+    const participated = await contract.getAuctionsParticipated(addr);
+    const won = await contract.getAuctionsWon(addr);
+
+    console.log("Participated:", participated, typeof participated);
+    console.log("Won:", won, typeof won);
+
+    setReputation({
+      participated: Number(participated),  // convert bigint to number
+      won: Number(won)
+    });
+  } catch (error) {
+    console.error("Failed to fetch reputation:", error);
   }
+};
+
+
+const fetchReputation = async () => {
+  if (!auctionContract || !userAddress) return;
+
+  try {
+    const participated = await auctionContract.getAuctionsParticipated(userAddress);
+    const won = await auctionContract.getAuctionsWon(userAddress);
+   console.log("Participated:", participated.toString());
+   console.log("Won:", won.toString());
+
+
+    setReputation({
+      participated: participated.toNumber ? participated.toNumber() : Number(participated),
+      won: won.toNumber ? won.toNumber() : Number(won),
+    });
+  } catch (error) {
+    console.error("Failed to fetch reputation:", error);
+    alert("Error fetching reputation. Check console.");
+  }
+};
+
+
+useEffect(() => {
+  if (auctionContract && userAddress) {
+    fetchReputation();
+  }
+}, [auctionContract, userAddress]);
+
 
   return (
     <div className="app-container">
@@ -213,6 +250,9 @@ function App() {
         </button>
       </header>
 
+      
+      
+
       <section className="section">
         <h2>Mint NFT</h2>
         <button onClick={mintNFT} className="action-button" disabled={minting}>
@@ -221,102 +261,49 @@ function App() {
       </section>
 
       <section className="section">
+        <h2>Your Reputation</h2>
+        <p>Auctions Participated: {reputation.participated.toString()}</p>
+        <p>Auctions Won: {reputation.won.toString()}</p>
+        <button onClick={fetchReputation} className="action-button">
+          Refresh Reputation
+        </button>
+      </section>
+
+
+      <section className="section">
         <h2>Approve NFT</h2>
-        <input
-          type="number"
-          name="approveTokenId"
-          placeholder="NFT Token ID"
-          value={formData.approveTokenId}
-          onChange={handleChange}
-          className="input"
-        />
+        <input type="number" name="approveTokenId" placeholder="NFT Token ID" value={formData.approveTokenId} onChange={handleChange} className="input" />
         <button onClick={approveNFT} className="action-button">Approve</button>
       </section>
 
       <section className="section">
         <h2>Create Auction</h2>
-        <input
-          type="number"
-          name="auctionTokenId"
-          placeholder="NFT Token ID"
-          value={formData.auctionTokenId}
-          onChange={handleChange}
-          className="input"
-        />
-        <input
-          type="text"
-          name="startPrice"
-          placeholder="Start Price (ETH)"
-          value={formData.startPrice}
-          onChange={handleChange}
-          className="input"
-        />
-        <input
-          type="number"
-          name="duration"
-          placeholder="Duration (seconds)"
-          value={formData.duration}
-          onChange={handleChange}
-          className="input"
-        />
-        <input
-          type="text"
-          name="charityAddress"
-          placeholder="Charity Address"
-          value={formData.charityAddress}
-          onChange={handleChange}
-          className="input"
-        />
+        <input type="number" name="auctionTokenId" placeholder="NFT Token ID" value={formData.auctionTokenId} onChange={handleChange} className="input" />
+        <input type="text" name="startPrice" placeholder="Start Price (ETH)" value={formData.startPrice} onChange={handleChange} className="input" />
+        <input type="number" name="duration" placeholder="Duration (seconds)" value={formData.duration} onChange={handleChange} className="input" />
+        <input type="text" name="charityAddress" placeholder="Charity Address" value={formData.charityAddress} onChange={handleChange} className="input" />
         <button onClick={createAuction} className="action-button">Create Auction</button>
       </section>
 
       <section className="section">
         <h2>Place Bid</h2>
-        <input
-          type="number"
-          name="bidAuctionId"
-          placeholder="Auction ID"
-          value={formData.bidAuctionId}
-          onChange={handleChange}
-          className="input"
-        />
-        <input
-          type="text"
-          name="bidAmount"
-          placeholder="Bid Amount (ETH)"
-          value={formData.bidAmount}
-          onChange={handleChange}
-          className="input"
-        />
+        <input type="number" name="bidAuctionId" placeholder="Auction ID" value={formData.bidAuctionId} onChange={handleChange} className="input" />
+        <input type="text" name="bidAmount" placeholder="Bid Amount (ETH)" value={formData.bidAmount} onChange={handleChange} className="input" />
         <button onClick={placeBid} className="action-button">Place Bid</button>
       </section>
 
       <section className="section">
         <h2>End Auction</h2>
-        <input
-          type="number"
-          name="endAuctionId"
-          placeholder="Auction ID"
-          value={formData.endAuctionId}
-          onChange={handleChange}
-          className="input"
-        />
+        <input type="number" name="endAuctionId" placeholder="Auction ID" value={formData.endAuctionId} onChange={handleChange} className="input" />
         <button onClick={endAuction} className="action-button">End Auction</button>
       </section>
 
       <section className="section">
         <h2>Withdraw Bid</h2>
-        <input
-          type="number"
-          name="withdrawAuctionId"
-          placeholder="Auction ID"
-          value={formData.withdrawAuctionId}
-          onChange={handleChange}
-          className="input"
-        />
+        <input type="number" name="withdrawAuctionId" placeholder="Auction ID" value={formData.withdrawAuctionId} onChange={handleChange} className="input" />
         <button onClick={withdrawBid} className="action-button">Withdraw</button>
       </section>
-
+      
       <section className="section">
         <h2>Active Auctions</h2>
         <button onClick={loadActiveAuctions} className="action-button">Load Active Auctions</button>
