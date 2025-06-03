@@ -5,8 +5,9 @@ import AUCTION_ABI from "./CharityAuction.json";
 import './App.css';
 import './index.css';
 
-const NFT_ADDRESS = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
-const AUCTION_ADDRESS = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
+const NFT_ADDRESS = "0xC0aDa621a5a5eEdE0aCC4E25a97e7Ef98a5134c8"; 
+const AUCTION_ADDRESS = "0x68d8C83874362eB3F4a03405fCd0538F787425cA";
+
 function App() {
   const [provider, setProvider] = useState(null);
   const [signer, setSigner] = useState(null);
@@ -96,7 +97,6 @@ function App() {
         startPrice,
         duration,
         charityAddr
-
       );
       await tx.wait();
       alert("Auction created!");
@@ -118,6 +118,7 @@ function App() {
       alert("Bid failed: " + (error?.message || error));
     }
   }
+
   async function endAuction() {
     if (!auctionContract) return alert("Connect wallet first!");
     try {
@@ -170,7 +171,6 @@ function App() {
             highestBidder: auction.highestBidder,
             duration: timeLeft.toString(),
             ended: auction.ended,
-
           });
         }
       }
@@ -178,12 +178,30 @@ function App() {
       setAuctions(active);
     } catch (error) {
       alert("Load auctions failed: " + (error?.message || error));
-
     }
   }
 
   function handleChange(e) {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  async function debugOwnerOf(tokenId) {
+    if (!nftContract) {
+      alert("Please connect wallet first!");
+      return;
+    }
+    if (typeof tokenId !== "number" || tokenId < 0) {
+      alert("Invalid tokenId for debug");
+      return;
+    }
+    try {
+      const owner = await nftContract.ownerOf(tokenId);
+      alert(`Owner of token ID ${tokenId} is ${owner}`);
+      console.log(`Owner of token ID ${tokenId}:`, owner);
+    } catch (error) {
+      alert(`Error calling ownerOf(${tokenId}): ${error.message || error}`);
+      console.error("ownerOf error:", error);
+    }
   }
 
   return (
@@ -271,7 +289,6 @@ function App() {
           className="input"
         />
         <button onClick={placeBid} className="action-button">Place Bid</button>
-
       </section>
 
       <section className="section">
@@ -286,7 +303,8 @@ function App() {
         />
         <button onClick={endAuction} className="action-button">End Auction</button>
       </section>
-     <section className="section">
+
+      <section className="section">
         <h2>Withdraw Bid</h2>
         <input
           type="number"
@@ -296,28 +314,22 @@ function App() {
           onChange={handleChange}
           className="input"
         />
-        <button onClick={withdrawBid} className="action-button">Withdraw Bid</button>
+        <button onClick={withdrawBid} className="action-button">Withdraw</button>
       </section>
+
       <section className="section">
         <h2>Active Auctions</h2>
         <button onClick={loadActiveAuctions} className="action-button">Load Active Auctions</button>
-        <ul className="auction-list">
+        <ul>
           {auctions.map((a) => (
-            <li key={a.auctionId} className="auction-item">
-              <strong>ID:</strong> {a.auctionId} |
-              <strong> Token:</strong> {a.tokenId} |
-              <strong> Start Price:</strong> {a.startPrice} ETH |
-              <strong> Charity:</strong> {a.charity} |
-              <strong> Highest Bid:</strong> {a.highestBid} ETH |
-              <strong> Bidder:</strong> {a.highestBidder} |
-              <strong> Time Left:</strong> {a.duration}s
+            <li key={a.auctionId}>
+              Auction #{a.auctionId} | Token #{a.tokenId} | Start Price: {a.startPrice} ETH | Highest Bid: {a.highestBid} ETH | Charity: {a.charity} | Time Left: {a.duration} seconds
             </li>
           ))}
         </ul>
       </section>
-      
     </div>
-    
   );
 }
+
 export default App;
