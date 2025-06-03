@@ -1,62 +1,50 @@
-#  NFT-Based Charity Auction DApp
+#  Charity Auction DApp
 
 A decentralized application for hosting **NFT auctions where all proceeds go directly to charity**. Built using Solidity, OpenZeppelin, and web3 tools. Transparent. Trustless. Impactful.
 
 ---
 
-## 📚 Table of Contents
-1. [Project Title](#-project-title)  
-2. [Project Description](#-project-description)  
-3. [Project Vision](#-project-vision)  
-4. [Future Scope](#-future-scope)  
-5. [Key Features](#-key-features)  
+##  Table of Contents
+1. [Project Title](#project-title) 
+2. [Project Description](#project-description)
+3. [Project Vision](#project-vision)
+4. [Future Scope](#future-scope)
+5. [Key Features](#key-features)
 6. [Fontend Showcase](#frontend-showcase)
-7. [Contract Addresses](#-contract-addresses)  
+7. [Contract Addresses](#contract-addresses)
 
 ---
 
-## 🎯 Project Title
-**NFT-Based Charity Auction DApp**
+## Project Title
+**Charity Auction DApp**
+
+---
+## Project Description
+A decentralized auction platform for NFTs where users can mint NFTs, create charity auctions, place bids, and track their reputation based on auction participation and wins. Built on Ethereum with React frontend and smart contracts.
+
+## Project Vision
+To enable transparent, trustless charity auctions that empower users to support causes through NFT ownership and bidding, while rewarding active and successful participants with a reputation system.
+
+## Future Scope
+- Integration with multiple NFT standards (ERC721, ERC1155)
+- Support for multiple blockchain networks (Polygon, Binance Smart Chain)
+- Advanced auction features like reserve prices and automatic extensions
+- Social features like user profiles and auction reviews
+- Improved UI/UX with real-time auction updates
+
+## Key Features
+- Connect wallet via MetaMask
+- Mint NFTs directly from the app
+- Approve NFTs for auction contract
+- Create auctions with start price, duration, and charity beneficiary
+- Place bids with ETH on active auctions
+- End auctions and withdraw bids securely
+- Reputation system showing auctions participated and won
+- List and view active auctions
 
 ---
 
-## 📝 Project Description
-This DApp allows users to mint NFTs and auction them off for charitable causes. The highest bid wins the NFT, and the ETH is automatically sent to the selected charity address by the smart contract.
-
----
-
-## 🌟 Project Vision
-Our mission is to **empower artists and collectors** to make a difference by auctioning digital assets for real-world good. Using Ethereum smart contracts, we ensure:
-
-- **No intermediaries**
-- **Guaranteed delivery**
-- **Automatic charity funding**
-
----
-
-## 🚀 Future Scope
--  Cross-chain auctions (Polygon, Base)
--  Verified charity registry
--  Auction analytics dashboard
--  NFT metadata IPFS/Arweave integration
--  Social sharing & referral rewards
-
----
-
-## ✅ Key Features
-
-| Feature | Description |
-|--------|-------------|
-|  NFT Minting | Mint your own NFTs using OpenZeppelin's ERC721 standard |
-|  Create Auction | List your NFT for auction and specify the charity |
-|  Real-Time Bidding | Place bids, outbid others, and see live auction status |
-|  Auction Settlement | Winner gets the NFT; charity gets the ETH — auto handled |
-|  Withdraw Bids | Outbid participants can safely withdraw their ETH |
-|  Fully On-Chain | Transparent and immutable auction history |
-
----
-
-## 🖼️ Frontend Showcase
+##  Frontend Showcase
 
 
 
@@ -80,7 +68,7 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 ![image](https://github.com/user-attachments/assets/ffbd52e1-07a8-432c-ad20-b404b58058f6)
 ### Place a bid by entering the Auction ID and amount in ETH. End the auction to transfer the NFT and send funds to charity
 
-### 📽️ Demo Video
+###  Demo Video
 
 https://github.com/user-attachments/assets/f563e2ed-7d6e-4151-92d8-3a38d4f5b996
 
@@ -89,7 +77,7 @@ https://github.com/user-attachments/assets/25564ee8-954f-4567-a4fe-cf91de9e3702
 
 ---
 
-## 🔐 Contract Addresses
+## Contract Addresses
 
 0xa0a9579D2F7b201cF2C09C09bE8B6D230b198c13
 ![image](https://github.com/user-attachments/assets/c886d6c0-3ada-4567-b85c-b2df81ded182)
