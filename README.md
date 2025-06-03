@@ -64,6 +64,10 @@ Our mission is to **empower artists and collectors** to make a difference by auc
 ![image](https://github.com/user-attachments/assets/5e94aefa-ff7e-4ac7-b101-1e662ed4993a)
 ### Users can mint NFTs by interacting with the sleek "Mint NFT" button.
 
+### 🔹Your Reputation
+![image](https://github.com/user-attachments/assets/706a1204-82d2-40ae-a89f-94e6a3265c7b)
+### Displays the number of auctions a user has participated in and won by fetching data from the smart contract, with a manual refresh option
+
 ## 🔹 Create Auction
 ![image](https://github.com/user-attachments/assets/2cbfaf65-c0f3-47a5-b976-f448a4225d3c)
 ### Enter NFT ID, start price, duration, and charity address to launch an auction on-chain.
