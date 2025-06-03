@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol"; // for CharityAuction
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
@@ -40,7 +40,7 @@ contract MyTestNFT is ERC721 {
     }
 }
 
-/// @notice NFT Auction contract accepting any ERC721 token
+/// @notice NFT Auction contract accepting any ERC721 token with reputation tracking
 contract CharityAuction {
     struct Auction {
         address seller;
@@ -60,6 +60,11 @@ contract CharityAuction {
     mapping(uint256 => mapping(address => uint256)) public bids;
     uint256[] public activeAuctions;
 
+    // Reputation system
+    mapping(address => uint256[]) private userParticipatedAuctions;
+    mapping(address => uint256[]) private userWonAuctions;
+    mapping(uint256 => mapping(address => bool)) private hasParticipated;
+
     event AuctionCreated(
         uint256 indexed auctionId,
         address indexed nftAddress,
@@ -70,12 +75,12 @@ contract CharityAuction {
         uint256 endTime,
         address charity
     );
+
     event BidPlaced(uint256 indexed auctionId, address indexed bidder, uint256 amount);
     event AuctionEnded(uint256 indexed auctionId, address winner, uint256 amount, address charity);
     event AuctionCancelled(uint256 indexed auctionId);
     event CharityUpdated(uint256 indexed auctionId, address newCharity);
 
-    /// @notice Create a new auction for a given NFT
     function createAuction(
         address _nftAddress,
         uint256 _tokenId,
@@ -87,13 +92,13 @@ contract CharityAuction {
         require(_charity != address(0), "Invalid charity address");
 
         IERC721 nft = IERC721(_nftAddress);
-       
         require(nft.ownerOf(_tokenId) == msg.sender, "Not NFT owner");
 
         nft.transferFrom(msg.sender, address(this), _tokenId);
 
         auctionCount++;
         uint256 currentTime = block.timestamp;
+
         auctions[auctionCount] = Auction({
             seller: msg.sender,
             nftAddress: _nftAddress,
@@ -108,15 +113,32 @@ contract CharityAuction {
         });
 
         activeAuctions.push(auctionCount);
-        emit AuctionCreated(auctionCount, _nftAddress, _tokenId, msg.sender, _startPrice, currentTime, currentTime + _duration, _charity);
+
+        emit AuctionCreated(
+            auctionCount,
+            _nftAddress,
+            _tokenId,
+            msg.sender,
+            _startPrice,
+            currentTime,
+            currentTime + _duration,
+            _charity
+        );
     }
 
-    /// @notice Place a bid on an active auction
     function placeBid(uint256 _auctionId) external payable {
         Auction storage auction = auctions[_auctionId];
         require(block.timestamp < auction.endTime, "Auction ended");
-        require(msg.value >= auction.startPrice, "Below start price");
-        require(msg.value > auction.highestBid, "Must beat highest bid");
+        require(msg.value >= auction.startPrice, "Bid below start price");
+        require(msg.value > auction.highestBid, "Bid not high enough");
+
+        // Track unique participation
+        if (!hasParticipated[_auctionId][msg.sender]) {
+            hasParticipated[_auctionId][msg.sender] = true;
+            userParticipatedAuctions[msg.sender].push(_auctionId);
+        }
+
+        // Refund previous highest bidder
         if (auction.highestBid > 0) {
             bids[_auctionId][auction.highestBidder] += auction.highestBid;
         }
@@ -127,78 +149,122 @@ contract CharityAuction {
         emit BidPlaced(_auctionId, msg.sender, msg.value);
     }
 
-    /// @notice End an auction after its duration
     function endAuction(uint256 _auctionId) external {
-        Auction storage auction = auctions[_auctionId];
-        require(block.timestamp >= auction.endTime, "Auction not over");
-        require(!auction.ended, "Auction already ended");
+    Auction storage auction = auctions[_auctionId];
+    require(block.timestamp >= auction.endTime, "Auction not yet ended");
+    require(!auction.ended, "Auction already ended");
 
-        auction.ended = true;
-        _removeFromActiveAuctions(_auctionId);
+    auction.ended = true;
+    _removeFromActiveAuctions(_auctionId);
 
-        if (auction.highestBid > 0) {
-          
-            IERC721(auction.nftAddress).transferFrom(address(this), auction.highestBidder, auction.tokenId);
-           
-            payable(auction.charity).transfer(auction.highestBid);
+    IERC721 nft = IERC721(auction.nftAddress);
 
-            emit AuctionEnded(_auctionId, auction.highestBidder, auction.highestBid, auction.charity);
-        } else {
-            IERC721(auction.nftAddress).transferFrom(address(this), auction.seller, auction.tokenId);
-        }
+    if (auction.highestBid > 0) {
+        // Transfer NFT to winner
+        require(
+            nft.ownerOf(auction.tokenId) == address(this),
+            "Contract not holding the NFT"
+        );
+
+        nft.transferFrom(address(this), auction.highestBidder, auction.tokenId);
+
+        // Send ETH to charity
+        (bool sent, ) = auction.charity.call{value: auction.highestBid}("");
+        require(sent, "Transfer to charity failed");
+
+        // Record reputation
+        userWonAuctions[auction.highestBidder].push(_auctionId);
+
+        emit AuctionEnded(_auctionId, auction.highestBidder, auction.highestBid, auction.charity);
+    } else {
+        // No bids — return NFT to seller
+        nft.transferFrom(address(this), auction.seller, auction.tokenId);
     }
+}
 
-    /// @notice Cancel an auction if no bids were placed
     function cancelAuction(uint256 _auctionId) external {
         Auction storage auction = auctions[_auctionId];
         require(msg.sender == auction.seller, "Not the seller");
-        require(auction.highestBid == 0, "Already has bids");
+        require(auction.highestBid == 0, "Bids already placed");
         require(!auction.ended, "Auction already ended");
 
         auction.ended = true;
         _removeFromActiveAuctions(_auctionId);
 
         IERC721(auction.nftAddress).transferFrom(address(this), auction.seller, auction.tokenId);
+
         emit AuctionCancelled(_auctionId);
     }
 
-    /// @notice Update charity address before auction ends
     function updateCharityAddress(uint256 _auctionId, address _newCharity) external {
         Auction storage auction = auctions[_auctionId];
         require(msg.sender == auction.seller, "Only seller can update");
-        require(!auction.ended, "Auction ended");
+        require(!auction.ended, "Auction already ended");
         require(_newCharity != address(0), "Invalid address");
 
         auction.charity = _newCharity;
+
         emit CharityUpdated(_auctionId, _newCharity);
     }
 
-    /// @notice Withdraw overbid amounts for bidders
     function withdrawBid(uint256 _auctionId) external {
         uint256 amount = bids[_auctionId][msg.sender];
-        require(amount > 0, "No withdrawable bid");
+        require(amount > 0, "No refundable bid");
 
         bids[_auctionId][msg.sender] = 0;
         payable(msg.sender).transfer(amount);
     }
 
-    /// @notice View current highest bidder and bid amount
     function getCurrentBidDetails(uint256 _auctionId) external view returns (address bidder, uint256 amount) {
         Auction memory auction = auctions[_auctionId];
         return (auction.highestBidder, auction.highestBid);
     }
 
-    /// @notice View list of active auction IDs
-    function getActiveAuctions() external view returns (uint256[] memory) {
-        return activeAuctions;
+function getActiveAuctions() external view returns (uint256[] memory) {
+    uint256 count = 0;
+    for (uint256 i = 0; i < activeAuctions.length; i++) {
+        Auction memory auction = auctions[activeAuctions[i]];
+        if (block.timestamp < auction.endTime && !auction.ended) {
+            count++;
+        }
     }
 
-    /// @notice View details of a specific auction
+    uint256[] memory validAuctions = new uint256[](count);
+    uint256 j = 0;
+    for (uint256 i = 0; i < activeAuctions.length; i++) {
+        Auction memory auction = auctions[activeAuctions[i]];
+        if (block.timestamp < auction.endTime && !auction.ended) {
+            validAuctions[j] = activeAuctions[i];
+            j++;
+        }
+    }
+
+    return validAuctions;
+}
+
+
     function getAuction(uint256 _auctionId) external view returns (Auction memory) {
         return auctions[_auctionId];
     }
 
-    /// @dev Internal helper to remove auction from active list
+    // ✅ Reputation Getters (IDs)
+    function getUserParticipatedAuctions(address user) external view returns (uint256[] memory) {
+        return userParticipatedAuctions[user];
+    }
+
+    function getUserWonAuctions(address user) external view returns (uint256[] memory) {
+        return userWonAuctions[user];
+    }
+
+    // ✅ Reputation Getters (counts)
+    function getAuctionsParticipated(address user) external view returns (uint256) {
+        return userParticipatedAuctions[user].length;
+    }
+
+    function getAuctionsWon(address user) external view returns (uint256) {
+        return userWonAuctions[user].length;
+    }
+
     function _removeFromActiveAuctions(uint256 _auctionId) internal {
         for (uint256 i = 0; i < activeAuctions.length; i++) {
             if (activeAuctions[i] == _auctionId) {
